@@ -132,7 +132,7 @@ size_t PushBefore (list_t *list, size_t pos, elem_t value) {
     list->data[pos].prev  = free_pos;
 
     if (pos == list->head) list->head = free_pos;
-    else list->islinear = false;
+    list->islinear = false;
 
     list->size++;
 
@@ -161,7 +161,8 @@ elem_t ListPop (list_t *list, size_t pos) {
     list->data[next].prev = prev;
 
     if (pos == list->tail) list->tail = prev;
-    if (pos == list->head) list->head = next;
+    else if (pos == list->head) list->head = next;
+    else list->islinear = false;
 
     list->data[pos].value = POISON;
     list->data[pos].next  = list->free;
@@ -171,6 +172,20 @@ elem_t ListPop (list_t *list, size_t pos) {
     list->free = pos;
 
     return value;
+}
+
+size_t GetElemByNum (list_t *list, size_t num) {
+
+    RET_ON_VAL(!list || num >=list->size, ERR_INCRR_INPUT, 0);
+
+    if (list->islinear) {
+        return list->data[list->head + num].value;
+    }
+    
+    printf("Oh, it's long operation so you have enough time to play in the game while it's running\n");
+    //system("sleep 3");                                //cringe
+    //system("..\\Jibril-master\\Jibril-Menu.exe");
+    abort();
 }
 
 void ListPrint (list_t *list) {

@@ -39,11 +39,12 @@ struct list_t {
 list_t ListCtor (size_t base_size = 1024);
 void   ListDtor (list_t *list);
 
-size_t PushAfter  (list_t *list, size_t pos, elem_t value);
-size_t PushBefore (list_t *list, size_t pos, elem_t value);
-size_t PushTail   (list_t *list, elem_t value);
-size_t PushHead   (list_t *list, elem_t value);
-elem_t ListPop    (list_t *list, size_t pos);
+size_t PushAfter    (list_t *list, size_t pos, elem_t value);
+size_t PushBefore   (list_t *list, size_t pos, elem_t value);
+size_t PushTail     (list_t *list, elem_t value);
+size_t PushHead     (list_t *list, elem_t value);
+elem_t ListPop      (list_t *list, size_t pos);
+size_t GetElemByNum (list_t *list, size_t num);
 
 int ListResizeUp   (list_t *list);
 int ResizeUpIfNeed (list_t *list, size_t *free_pos);
@@ -61,11 +62,8 @@ void  MakeInvisChain     (FILE *output, const list_t *list);
 void  MakeNodeChain      (FILE *output, const list_t *list);
 void  MakeFreeChain      (FILE *output, const list_t *list);
 
-char *toStr(int num, char *buf);
-
-
-
-int    SetBirds (node_t *data, size_t size);
+char *toStr    (int num, char *buf);
+int   SetBirds (node_t *data, size_t size);
 
 
 
