@@ -17,17 +17,18 @@ list_t ListCtor (size_t base_size) {
     list_t err_list {
         .data = nullptr,
 
-        .head     = 0,
-        .tail     = 0,
-        .free     = 0,
-
-        .size     = 0,
-        .capacity = 0,
-        .factor   = 0,
-
-        .islinear = 0,
-
-        .gdumpnum = 0,
+        .head      = 0,
+        .tail      = 0,
+        .free      = 0,
+ 
+        .size      = 0,
+        .capacity  = 0,
+        .base_size = 0,
+        .factor    = 0,
+ 
+        .islinear  = 0,
+ 
+        .gdumpnum  = 0,
     };
 
     RET_ON_VAL(base_size > sizeof(size_t) / sizeof(node_t) - 10 * sizeof(CANARY), ERR_ARG_INVAL, err_list);
@@ -40,17 +41,18 @@ list_t ListCtor (size_t base_size) {
     list_t list = {
         .data = (node_t*) ((char*) data + sizeof(CANARY)),
 
-        .head     = BUF_SIZE,
-        .tail     = BUF_SIZE,
-        .free     = BUF_SIZE,
-
-        .size     = 0,
-        .capacity = base_size,
-        .factor   = 2,
-
-        .islinear = true,
-
-        .gdumpnum = 0,
+        .head      = BUF_SIZE,
+        .tail      = BUF_SIZE,
+        .free      = BUF_SIZE,
+ 
+        .size      = 0,
+        .capacity  = base_size,
+        .base_size = base_size,
+        .factor    = 2,
+ 
+        .islinear  = true,
+ 
+        .gdumpnum  = 0,
     };
 
     err = PrepareData(&list, BUF_SIZE, BUF_SIZE + base_size);
@@ -171,6 +173,10 @@ elem_t ListPop (list_t *list, size_t pos) {
     list->size--;
     list->free = pos;
 
+    printf("c1: %d\n", list->capacity);
+    ResizeDownIfNeed(list);
+    printf("c2: %d\n", list->capacity);
+
     return value;
 }
 
@@ -256,6 +262,33 @@ int ResizeUpIfNeed (list_t *list, size_t *free_pos) {
     return 0;
 }
 
+int ListResizeDown (list_t *list) {
+
+    RET_ON_VAL(!list, ERR_NULL_PTR, 1);
+
+    node_t *data = (node_t*) realloc((char*)list->data - sizeof(CANARY),\
+                                 (BUF_SIZE + list->capacity/list->factor)*sizeof(node_t) + 2*sizeof(CANARY));
+    RET_ON_VAL(!data, ERR_NULL_PTR, 1);
+
+    SetBirds(data, list->capacity/list->factor + BUF_SIZE);
+    list->data = (node_t*) ((char*)data + sizeof(CANARY));
+    list->capacity /= list->factor;
+    PrepareData(list, list->free, BUF_SIZE + list->capacity);
+
+    return 0;
+}
+
+int ResizeDownIfNeed (list_t *list) {
+
+    RET_ON_VAL(!list, ERR_INCRR_INPUT, 1);
+
+    if (list->islinear == 1 && list->capacity > list->base_size && list->size * list->factor * list->factor <= list->capacity) {
+        ListResizeDown(list);
+    }
+
+    return 0;
+}
+
 int ListLinear (list_t *list) {
 
     RET_ON_VAL(!list, ERR_NULL_PTR, 1);
@@ -331,11 +364,16 @@ void GraphDump (list_t *list) {
     char buf[STR_SIZE] = {}, file_name[STR_SIZE] = {};
     sprintf(file_name, "gdump\\GraphImageCode#%s.txt", toStr(list->gdumpnum, buf));
 
+    printf("%s\n", file_name);
+
     FILE *gdump = fopen(file_name, "w");
+    printf("%s\n", file_name);
+
+    RET_ON_VAL(!gdump, ERR_ACC_DENi, );
     fprintf(gdump, "digraph G{\n");
     fprintf(gdump, "rankdir = LR\n");
     fprintf(gdump, "\n");
-
+    
     fprintf(gdump, "%s\n", CreateListNodeCode(buf, list));
     fprintf(gdump, "\n");
 
